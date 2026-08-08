@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CS: Kazakhstan</title>
+    <style>
+        * { margin: 0; padding: 0; user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; font-family: Arial, sans-serif; touch-action: none; }
+        canvas { display: block; touch-action: none; }
+        
+        #menu {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 100;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        #menu h1 {
+            color: #ff6b00;
+            font-size: clamp(32px, 10vw, 72px);
+            text-shadow: 0 0 30px #ff6b00, 0 0 60px #ff4500;
+            text-align: center;
+            margin: 10px 0 5px 0;
+        }
+        #menu .subtitle {
+            color: #ffd700;
+            font-size: clamp(12px, 3vw, 22px);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        #tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+        #tabs .tab {
+            padding: 8px 20px;
+            border: 2px solid #444;
+            border-radius: 25px;
+            color: #888;
+            font-size: clamp(12px, 2.5vw, 18px);
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.3s;
+            background: transparent;
+            font-weight: bold;
+        }
+        #tabs .tab.active { border-color: #ff6b00; color: #ff6b00; background: rgba(255,107,0,0.1); }
+        #tabs .tab:active { transform: scale(0.95); }
+        
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 0;
+        }
+        .tab-content.active { display: flex; }
+        
+        .tab-content .btn {
+            background: linear-gradient(135deg, #ff6b00, #ff4500);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: clamp(14px, 3.5vw, 20px);
+            border-radius: 12px;
+            cursor: pointer;
+            width: min(300px, 90%);
+            font-weight: bold;
+            touch-action: manipulation;
+            transition: transform 0.1s;
+            text-align: center;
+        }
+        .tab-content .btn:active { transform: scale(0.95); }
+        .tab-content .btn.red { background: linear-gradient(135deg, #ff0000, #cc0000); }
+        .tab-content .btn.blue { background: linear-gradient(135deg, #0066ff, #0033cc); }
+        .tab-content .btn.green { background: linear-gradient(135deg, #00cc44, #00882b); }
+        .tab-content .btn.purple { background: linear-gradient(135deg, #9933ff, #6600cc); }
+        .tab-content .btn.gold { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+        .tab-content .btn.gray { background: linear-gradient(135deg, #666, #444); }
+        .tab-content .btn.spec { background: linear-gradient(135deg, #9900cc, #660099); }
+        
+        .tab-content .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            max-width: 350px;
+        }
+        .tab-content .btn-row .btn { width: calc(50% - 10px); min-width: 100px; }
+        
+        .menu-input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #ff6b00;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            width: min(250px, 80%);
+            touch-action: manipulation;
+        }
+        .menu-input:focus { border-color: #ffd700; }
+        
+        .menu-label { color: #aaa; font-size: clamp(12px, 2.5vw, 16px); margin: 5px 0; }
+        .menu-label span { color: #ffd700; }
+        
+        .avatar-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 350px;
+            padding: 10px;
+        }
+        .avatar-grid .av {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid #444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+        .avatar-grid .av:active { transform: scale(0.9); }
+        .avatar-grid .av.selected { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        .avatar-grid .av img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .skin-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 350px;
+            padding: 10px;
+        }
+        .skin-grid .sk {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            border: 3px solid #444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            touch-action: manipulation;
+            flex-direction: column;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .skin-grid .sk:active { transform: scale(0.9); }
+        .skin-grid .sk.selected { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        .skin-grid .sk img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: min(300px, 90%);
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            color: #fff;
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+        .setting-item input[type="range"] { width: 120px; accent-color: #ff6b00; background: transparent; }
+        .setting-item select {
+            padding: 5px 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: 1px solid #ff6b00;
+            font-size: 14px;
+        }
+        .setting-item .val { color: #ffd700; font-weight: bold; min-width: 30px; text-align: center; }
+        
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: #444;
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+            touch-action: manipulation;
+        }
+        .toggle.on { background: #ff6b00; }
+        .toggle .knob {
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+        }
+        .toggle.on .knob { transform: translateX(22px); }
+        
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: clamp(10px, 2.2vw, 16px);
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.7);
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
+            pointer-events: none;
+            max-width: 60%;
+        }
+        #hud span { color: #ffd700; }
+        #hud .team-red { color: #ff4444; }
+        #hud .team-blue { color: #4488ff; }
+        #hud .team-spec { color: #aa44ff; }
+        
+        #hp-bar {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(300px, 60%);
+            height: 16px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+            z-index: 10;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        #hp-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #44ff44);
+            border-radius: 10px;
+            transition: width 0.2s;
+        }
+        #hp-text {
+            position: absolute;
+            bottom: 98px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: clamp(10px, 2vw, 14px);
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            pointer-events: none;
+            font-weight: bold;
+        }
+        
+        #chat {
+            position: absolute;
+            bottom: 110px;
+            left: 10px;
+            width: min(300px, 60%);
+            max-height: 120px;
+            overflow-y: auto;
+            color: #fff;
+            font-size: clamp(10px, 1.8vw, 13px);
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            z-index: 10;
+        }
+        #chat .msg {
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            margin: 1px 0;
+            border-radius: 4px;
+            border-left: 3px solid #ff6b00;
+            word-break: break-word;
+        }
+        #chat .msg.bot { border-left-color: #00cc44; }
+        #chat .msg.system { border-left-color: #ffd700; color: #ffd700; }
+        #chat .msg.voice { border-left-color: #ff00ff; color: #ff88ff; }
+        
+        #chat-input {
+            position: absolute;
+            bottom: 70px;
+            left: 10px;
+            width: min(260px, 60%);
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #ff6b00;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            z-index: 20;
+            display: none;
+            touch-action: manipulation;
+        }
+        #chat-input:focus { border-color: #ffd700; }
+        
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(0,255,0,0.7);
+        }
+        #crosshair::before { width: 2px; height: 20px; top: -10px; left: -1px; }
+        #crosshair::after { width: 20px; height: 2px; top: -1px; left: -10px; }
+        .dot {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(0,255,0,0.7);
+            border-radius: 50%;
+            top: -1.5px;
+            left: -1.5px;
+        }
+        
+        #ammo {
+            position: absolute;
+            bottom: 20px;
+            right: 15px;
+            color: #fff;
+            font-size: clamp(18px, 4.5vw, 30px);
+            text-shadow: 0 0 20px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 10;
+            text-align: right;
+        }
+        #ammo .gun { font-size: 0.5em; color: #aaa; }
+        
+        #touch-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+        #joystick-area {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 110px;
+            height: 110px;
+            pointer-events: all;
+            touch-action: none;
+        }
+        #joystick-bg {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.25);
+            position: relative;
+            touch-action: none;
+        }
+        #joystick-thumb {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+            border: 2px solid rgba(255,255,255,0.15);
+        }
+        
+        #fire-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: rgba(255,50,50,0.5);
+            border: 3px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: all;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(255,0,0,0.2);
+            z-index: 20;
+            user-select: none;
+        }
+        #fire-btn:active { background: rgba(255,0,0,0.8); transform: scale(0.9); }
+        
+        #kumis-btn {
+            position: absolute;
+            bottom: 115px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,215,0,0.4);
+            border: 2px solid rgba(255,215,0,0.3);
+            color: #ffd700;
+            font-size: 10px;
+            font-weight: bold;
+            pointer-events: all;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            user-select: none;
+        }
+        #kumis-btn:active { background: rgba(255,215,0,0.7); transform: scale(0.9); }
+        
+        #voice-btn {
+            position: absolute;
+            bottom: 175px;
+            right: 25px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,0,255,0.3);
+            border: 2px solid rgba(255,0,255,0.3);
+            color: #ff88ff;
+            font-size: 16px;
+            pointer-events: all;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            user-select: none;
+        }
+        #voice-btn:active { background: rgba(255,0,255,0.6); transform: scale(0.9); }
+        
+        #menu-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 14px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #ff6b00;
+            border-radius: 15px;
+            color: #ff6b00;
+            font-size: clamp(10px, 2vw, 14px);
+            font-weight: bold;
+            pointer-events: all;
+            touch-action: manipulation;
+            z-index: 10;
+        }
+        #menu-btn:active { background: rgba(255,107,0,0.2); }
+        
+        #shop-btn {
+            position: absolute;
+            top: 65px;
+            right: 15px;
+            padding: 6px 14px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #ffd700;
+            border-radius: 15px;
+            color: #ffd700;
+            font-size: clamp(10px, 2vw, 14px);
+            font-weight: bold;
+            pointer-events: all;
+            touch-action: manipulation;
+            z-index: 10;
+        }
+        #shop-btn:active { background: rgba(255,215,0,0.2); }
+        
+        #chat-btn {
+            position: absolute;
+            top: 115px;
+            right: 15px;
+            padding: 6px 14px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #0066ff;
+            border-radius: 15px;
+            color: #0066ff;
+            font-size: clamp(10px, 2vw, 14px);
+            font-weight: bold;
+            pointer-events: all;
+            touch-action: manipulation;
+            z-index: 10;
+        }
+        #chat-btn:active { background: rgba(0,102,255,0.2); }
+        
+        #shop, #server-list, #in-game-menu {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid #ffd700;
+            display: none;
+            pointer-events: all;
+            z-index: 50;
+            width: min(380px, 90%);
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        #shop h2, #server-list h2, #in-game-menu h2 { color: #ffd700; margin-bottom: 15px; font-size: clamp(18px, 4.5vw, 28px); }
+        #shop .item {
+            color: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            touch-action: manipulation;
+        }
+        #shop .item:active { background: rgba(255,215,0,0.2); }
+        #shop .item .price { color: #ffd700; font-weight: bold; }
+        #shop .close-btn, #server-list .close-btn, #in-game-menu .close-btn {
+            margin-top: 15px;
+            padding: 10px 30px;
+            background: #ff4444;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        #server-list { border-color: #0066ff; }
+        #server-list h2 { color: #0066ff; }
+        #server-list .server {
+            color: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        #in-game-menu { border-color: #ff6b00; }
+        #in-game-menu .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: manipulation;
+            color: #fff;
+        }
+        #in-game-menu .btn.red { background: #ff0000; }
+        #in-game-menu .btn.blue { background: #0066ff; }
+        #in-game-menu .btn.spec { background: #9900cc; }
+        #in-game-menu .btn.green { background: #00cc44; }
+        #in-game-menu .btn.gold { background: #ff8c00; }
+        #in-game-menu .btn.menu-btn { background: linear-gradient(135deg, #ff6b00, #ff4500); }
+        
+        #players-list {
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 12px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: clamp(10px, 1.8vw, 14px);
+            z-index: 10;
+            pointer-events: none;
+            min-width: 120px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #players-list .player {
+            padding: 3px 6px;
+            margin: 2px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+        }
+        #players-list .player .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #players-list .player .avatar img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        #players-list .player .name { flex: 1; font-size: 0.9em; }
+        #players-list .player .hp { font-size: 0.7em; opacity: 0.7; }
+        #players-list .player.red { border-left: 3px solid #ff4444; }
+        #players-list .player.blue { border-left: 3px solid #4488ff; }
+        #players-list .player.spec { border-left: 3px solid #aa44ff; opacity: 0.6; }
+        #players-list .player.dead { opacity: 0.3; text-decoration: line-through; }
+        #players-list .player.you { background: rgba(255,215,0,0.15); border-left-color: #ffd700; }
+        
+        @media (max-width: 600px) {
+            #joystick-area { width: 85px; height: 85px; bottom: 20px; left: 15px; }
+            #joystick-bg { width: 85px; height: 85px; }
+            #joystick-thumb { width: 35px; height: 35px; }
+            #fire-btn { width: 55px; height: 55px; bottom: 25px; right: 15px; font-size: 10px; }
+            #kumis-btn { width: 42px; height: 42px; bottom: 90px; right: 15px; font-size: 8px; }
+            #voice-btn { width: 38px; height: 38px; bottom: 140px; right: 15px; font-size: 14px; }
+            #hp-bar { width: 50%; bottom: 65px; height: 12px; }
+            #hp-text { bottom: 78px; font-size: 9px; }
+            #chat { max-height: 80px; bottom: 85px; }
+            #players-list { right: 5px; min-width: 80px; font-size: 9px; padding: 4px 6px; max-height: 150px; }
+            #players-list .player .avatar { width: 18px; height: 18px; font-size: 14px; }
+            #players-list .player .avatar img { width: 18px; height: 18px; }
+            .avatar-grid .av { width: 40px; height: 40px; font-size: 18px; }
+            .avatar-grid .av img { width: 32px; height: 32px; }
+            .skin-grid .sk { width: 55px; height: 55px; font-size: 10px; }
+            .skin-grid .sk img { width: 40px; height: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- МЕНЮ -->
+<div id="menu">
+    <h1>🇰🇿 CS:KAZAKHSTAN</h1>
+    <div class="subtitle">⚡ Командный шутер ⚡</div>
+    
+    <div id="tabs">
+        <div class="tab active" data-tab="play" onclick="switchTab('play')">🎮 Играть</div>
+        <div class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Настройки</div>
+        <div class="tab" data-tab="profile" onclick="switchTab('profile')">👤 Профиль</div>
+        <div class="tab" data-tab="servers" onclick="switchTab('servers')">🌐 Сервера</div>
+        <div class="tab" data-tab="avatars" onclick="switchTab('avatars')">🖼️ Аватары</div>
+        <div class="tab" data-tab="skins" onclick="switchTab('skins')">🎨 Скины</div>
+    </div>
+    
+    <div id="tab-play" class="tab-content active">
+        <div class="menu-label">📍 Выберите карту:</div>
+        <div class="btn-row">
+            <button class="btn" onclick="selectMap('dust2')" style="background:linear-gradient(135deg,#8B7355,#5C4033);">🏜️ Dust 2</button>
+            <button class="btn green" onclick="selectMap('Aztec')">🏛️ Aztec</button>
+            <button class="btn purple" onclick="selectMap('Almaty')">🏔️ Алматы</button>
+            <button class="btn gold" onclick="selectMap('Kavkaz')">⛰️ Кавказ</button>
+        </div>
+        
+        <div id="team-select" style="display:none; width:100%; max-width:350px;">
+            <div class="menu-label" style="margin-top:10px;">👥 Выберите команду для <span id="selected-map-name">Dust 2</span>:</div>
+            <button class="btn red" onclick="startGameWithTeam('red')">🔴 КРАСНЫЕ</button>
+            <button class="btn blue" onclick="startGameWithTeam('blue')">🔵 СИНИЕ</button>
+            <button class="btn spec" onclick="startGameWithTeam('spec')">👁️ НАБЛЮДАТЕЛЬ</button>
+            <button class="btn gray" onclick="cancelTeamSelect()" style="background:linear-gradient(135deg,#666,#444);">↩️ Назад</button>
+        </div>
+        
+        <div id="map-preview" style="display:flex; gap:8px; margin:5px 0; flex-wrap:wrap; justify-content:center;">
+            <div style="color:#888; font-size:clamp(10px,2vw,14px);">Выбрана карта: <span id="current-map-display" style="color:#ffd700;">Не выбрана</span></div>
+        </div>
+    </div>
+    
+    <div id="tab-settings" class="tab-content">
+        <div class="setting-item">
+            <span>🔊 Громкость</span>
+            <input type="range" min="0" max="100" value="70" oninput="document.getElementById('vol-val').textContent=this.value; updateVolume(this.value);">
+            <span class="val" id="vol-val">70</span>
+        </div>
+        <div class="setting-item">
+            <span>🎯 Чувствительность</span>
+            <input type="range" min="1" max="30" value="10" oninput="document.getElementById('sens-val').textContent=this.value; mouseSensitivity=this.value/100;">
+            <span class="val" id="sens-val">10</span>
+        </div>
+        <div class="setting-item">
+            <span>👁️ Поле зрения (FOV)</span>
+            <input type="range" min="60" max="120" value="75" oninput="document.getElementById('fov-val').textContent=this.value; updateFOV(this.value);">
+            <span class="val" id="fov-val">75</span>
+        </div>
+        <div class="setting-item">
+            <span>🤖 Количество ботов</span>
+            <select onchange="botCountSetting=parseInt(this.value)">
+                <option value="4">4</option>
+                <option value="6" selected>6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <span>💀 Дружественный огонь</span>
+            <div class="toggle on" onclick="toggleFriendlyFire(this)" id="ff-toggle"><div class="knob"></div></div>
+        </div>
+        <div class="setting-item">
+            <span>📱 Вибрация</span>
+            <div class="toggle on" onclick="toggleVibration(this)" id="vib-toggle"><div class="knob"></div></div>
+        </div>
+        <div class="setting-item">
+            <span>🎵 Музыка меню</span>
+            <div class="toggle on" onclick="toggleMenuMusic(this)" id="music-toggle"><div class="knob"></div></div>
+        </div>
+        <div class="setting-item" style="margin-top:5px; justify-content:center; gap:10px;">
+            <button class="btn gray" onclick="resetSettings()" style="padding:8px 20px; font-size:14px; width:auto; background:linear-gradient(135deg,#ff4444,#cc0000);">Сбросить</button>
+        </div>
+    </div>
+    
+    <div id="tab-profile" class="tab-content">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:350px;">
+            <div style="color:#fff; font-size:clamp(16px,4vw,24px);">
+                <img id="profile-avatar-img" src="" style="width:50px;height:50px;border-radius:50%;vertical-align:middle;margin-right:10px;display:none;">
+                <span id="profile-avatar-emoji" style="font-size:32px;">👤</span>
+                <span id="profile-nick">Player</span>
+            </div>
+            <div style="color:#aaa;">💰 <span id="profile-money" style="color:#ffd700;">1000</span> ₸</div>
+            <div style="color:#aaa;">🎯 Убийств: <span id="profile-kills" style="color:#ff6b00;">0</span></div>
+            <div style="color:#aaa;">🏆 Скин: <span id="profile-skin" style="color:#ffd700;">Казах</span></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:5px;">
+                <input type="text" id="profile-nick-input" placeholder="Новый ник" class="menu-input" style="width:min(180px,60%);">
+                <button onclick="setNickFromProfile()" style="padding:10px 18px; background:#ff6b00; border:none; border-radius:20px; color:#fff; font-size:16px; cursor:pointer;">✅</button>
+            </div>
+            <button class="btn gold" onclick="openShop(); switchTab('play');" style="width:min(250px,80%);">🛒 Открыть магазин</button>
+        </div>
+    </div>
+    
+    <div id="tab-servers" class="tab-content">
+        <div id="server-list-container" style="width:100%; max-width:350px;">
+            <div style="color:#888; text-align:center; padding:20px;">Нет активных серверов</div>
+        </div>
+        <button class="btn gray" onclick="refreshServers()" style="width:min(250px,80%); background:linear-gradient(135deg,#666,#444);">🔄 Обновить</button>
+    </div>
+    
+    <div id="tab-avatars" class="tab-content">
+        <div class="menu-label">🖼️ Выберите аватар (1.png - 10.png):</div>
+        <div class="avatar-grid" id="avatar-grid">
+            <!-- Генерируется JS -->
+        </div>
+        <button class="btn gray" onclick="resetAvatar()" style="width:min(250px,80%); background:linear-gradient(135deg,#666,#444);">↩️ Сбросить</button>
+    </div>
+    
+    <div id="tab-skins" class="tab-content">
+        <div class="menu-label">🎨 Выберите скин (skin1.png - skin5.png):</div>
+        <div class="skin-grid" id="skin-grid">
+            <!-- Генерируется JS -->
+        </div>
+        <button class="btn gray" onclick="resetSkin()" style="width:min(250px,80%); background:linear-gradient(135deg,#666,#444);">↩️ Сбросить</button>
+    </div>
+    
+    <div style="color:#666; margin-top:10px; font-size:clamp(8px,1.8vw,12px); text-align:center;">
+        🎮 Джойстик слева | 🔫 Огонь справа | 🟡 Кумыс | 🎤 Голос
+    </div>
+</div>
+
+<!-- ИГРОВОЙ ИНТЕРФЕЙС -->
+<div id="hud" style="display:none;">
+    <div>🗺️ <span id="mapName">Dust 2</span></div>
+    <div>💰 <span id="hudMoney">1000</span> ₸ | 👤 <span id="hudNick">Player</span></div>
+    <div style="font-size:0.8em; color:#aaa;">Команда: <span id="hudTeam" class="team-red">КРАСНЫЕ</span> | Скин: <span id="hudSkin">Казах</span></div>
+</div>
+
+<div id="hp-bar" style="display:none;"><div id="hp-fill" style="width:100%;"></div></div>
+<div id="hp-text" style="display:none;">❤️ <span id="hp-value">100</span> HP</div>
+
+<div id="players-list" style="display:none;"></div>
+
+<div id="chat" style="display:none;"></div>
+<input type="text" id="chat-input" placeholder="Введите сообщение..." onkeydown="if(event.key==='Enter'){sendChat();}">
+
+<div id="crosshair" style="display:none;"><div class="dot"></div></div>
+
+<div id="ammo" style="display:none;">
+    <div>🔫 ∞</div>
+    <div class="gun">Koleso</div>
+</div>
+
+<!-- МОБИЛЬНЫЕ КНОПКИ -->
+<div id="touch-controls" style="display:none;">
+    <div id="joystick-area">
+        <div id="joystick-bg">
+            <div id="joystick-thumb"></div>
+        </div>
+    </div>
+    
+    <button id="kumis-btn" ontouchstart="throwKumisMobile();" onmousedown="throwKumisMobile();">🟡<br>Кумыс</button>
+    <button id="voice-btn" ontouchstart="playRandomVoice();" onmousedown="playRandomVoice();">🎤</button>
+    <button id="fire-btn" ontouchstart="startFire();" ontouchend="stopFire();" onmousedown="startFire();" onmouseup="stopFire();">🔫 ОГОНЬ</button>
+    
+    <button id="menu-btn" onclick="toggleInGameMenu()">☰ Меню</button>
+    <button id="shop-btn" onclick="openShop()">🛒</button>
+    <button id="chat-btn" onclick="toggleChat()">💬</button>
+</div>
+
+<!-- ПОПАПЫ -->
+<div id="shop">
+    <h2>🛒 Магазин скинов</h2>
+    <div class="item" onclick="buySkin('Казах', 0)">🇰🇿 Казах <span class="price">Бесплатно</span></div>
+    <div class="item" onclick="buySkin('Киргиз', 500)">🇰🇬 Киргиз <span class="price">500 ₸</span></div>
+    <div class="item" onclick="buySkin('Коч Коч Братан', 1500)">🐑 Коч Коч Братан <span class="price">1500 ₸</span></div>
+    <div class="item" onclick="buySkin('Алматинский Барс', 2500)">🐆 Алматинский Барс <span class="price">2500 ₸</span></div>
+    <div class="item" onclick="buySkin('Степной Волк', 3000)">🐺 Степной Волк <span class="price">3000 ₸</span></div>
+    <button class="close-btn" onclick="closeShop()">✖ Закрыть</button>
+</div>
+
+<div id="server-list">
+    <h2>🌐 Сервера</h2>
+    <div id="serverListContainer"></div>
+    <button class="close-btn" onclick="closeServers()" style="background:#0066ff;">✖ Закрыть</button>
+</div>
+
+<div id="in-game-menu">
+    <h2>☰ Меню игры</h2>
+    <button class="btn red" onclick="switchTeam('red')">🔴 Перейти в КРАСНЫЕ</button>
+    <button class="btn blue" onclick="switchTeam('blue')">🔵 Перейти в СИНИЕ</button>
+    <button class="btn spec" onclick="switchTeam('spec')">👁️ НАБЛЮДАТЕЛЬ</button>
+    <button class="btn gold" onclick="openShop(); document.getElementById('in-game-menu').style.display='none';">🛒 Магазин</button>
+    <button class="btn menu-btn" onclick="goToMainMenu()">🏠 Основное меню</button>
+    <button class="btn green" onclick="location.reload();">🔄 Перезапустить</button>
+    <button class="close-btn" onclick="document.getElementById('in-game-menu').style.display='none';">✖ Закрыть</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+//  ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+// ============================================================
+let scene, camera, renderer;
+let gameRunning = false;
+let bots = [];
+let allPlayers = [];
+let bullets = [];
+let particles = [];
+let mapWalls = [];
+let mapSpawns = {};
+let mapName = "Dust 2";
+let selectedMap = "dust2";
+let money = 1000;
+let skin = "Казах";
+let skinFile = "";
+let nick = "Player";
+let myTeam = 'red';
+let myHp = 100;
+let maxHp = 100;
+let isSpectator = false;
+let chatMessages = [];
+let serverList = [];
+let myPos = { x: 0, z: 0 };
+let myRot = 0;
+let isFiring = false;
+let lastShotTime = 0;
+let shootCooldown = 250;
+let botSpawnTimer = 0;
+let kills = 0;
+let gameTime = 0;
+let mouseSensitivity = 0.1;
+let botCountSetting = 6;
+let friendlyFire = true;
+let vibrationEnabled = true;
+let musicEnabled = true;
+let fovValue = 75;
+let myAvatar = "";
+let volume = 0.7;
+
+// Звуки
+let audioCtx = null;
+let menuAudio = null;
+let voiceAudios = [];
+
+// Джойстик
+let joystickActive = false;
+let joystickData = { x: 0, y: 0 };
+let joystickTouchId = null;
+
+// ============================================================
+//  ВОЗВРАТ В ГЛАВНОЕ МЕНЮ
+// ============================================================
+function goToMainMenu() {
+    // Останавливаем игру
+    gameRunning = false;
+    
+    // Скрываем игровой интерфейс
+    ['hud', 'hp-bar', 'hp-text', 'players-list', 'chat', 'crosshair', 'ammo', 'touch-controls'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    
+    // Показываем меню
+    document.getElementById('menu').style.display = 'flex';
+    document.getElementById('in-game-menu').style.display = 'none';
+    document.getElementById('shop').style.display = 'none';
+    document.getElementById('server-list').style.display = 'none';
+    
+    // Очищаем сцену от объектов
+    bots.forEach(b => { if (b.mesh) scene.remove(b.mesh); });
+    bots = [];
+    allPlayers = [];
+    bullets.forEach(b => scene.remove(b.mesh));
+    bullets = [];
+    particles.forEach(p => scene.remove(p.mesh));
+    particles = [];
+    serverList = [];
+    
+    // Включаем музыку меню
+    if (musicEnabled) {
+        playMenuMusic();
+    }
+    
+    addChatMessage(`🏠 Возврат в главное меню`, 'system');
+    
+    // Обновляем отображение профиля
+    document.getElementById('profile-nick').textContent = nick;
+    document.getElementById('profile-money').textContent = money;
+    document.getElementById('profile-kills').textContent = kills;
+    document.getElementById('profile-skin').textContent = skin;
+    if (myAvatar) {
+        document.getElementById('profile-avatar-img').src = myAvatar;
+        document.getElementById('profile-avatar-img').style.display = 'inline';
+        document.getElementById('profile-avatar-emoji').style.display = 'none';
+    }
+}
+
+// ============================================================
+//  ИНИЦИАЛИЗАЦИЯ ЗВУКА
+// ============================================================
+function initAudio() {
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        menuAudio = new Audio();
+        menuAudio.src = 'menu.mp3';
+        menuAudio.loop = true;
+        menuAudio.volume = volume * 0.5;
+        
+        for (let i = 1; i <= 5; i++) {
+            const audio = new Audio();
+            audio.src = i + '.mp3';
+            audio.volume = volume * 0.8;
+            voiceAudios.push(audio);
+        }
+    } catch(e) {
+        console.log('Audio not supported');
+    }
+}
+
+function playMenuMusic() {
+    if (menuAudio && musicEnabled) {
+        menuAudio.play().catch(e => {});
+    }
+}
+
+function stopMenuMusic() {
+    if (menuAudio) {
+        menuAudio.pause();
+        menuAudio.currentTime = 0;
+    }
+}
+
+function playRandomVoice() {
+    if (!gameRunning || voiceAudios.length === 0) return;
+    const idx = Math.floor(Math.random() * voiceAudios.length);
+    const audio = voiceAudios[idx];
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => {});
+        const voiceMessages = ['💬 Сәлем!', '💬 Қалайсың?', '💬 Жақсы!', '💬 Коч коч!', '💬 Ай, батыр!'];
+        addChatMessage(`🎤 ${nick}: ${voiceMessages[idx]}`, 'voice');
+    }
+}
+
+function updateVolume(val) {
+    volume = val / 100;
+    if (menuAudio) menuAudio.volume = volume * 0.5;
+    voiceAudios.forEach(a => a.volume = volume * 0.8);
+}
+
+function toggleMenuMusic(el) {
+    el.classList.toggle('on');
+    musicEnabled = el.classList.contains('on');
+    if (musicEnabled) {
+        playMenuMusic();
+    } else {
+        stopMenuMusic();
+    }
+}
+
+// ============================================================
+//  АВАТАРЫ И СКИНЫ
+// ============================================================
+function initAvatarsAndSkins() {
+    const grid = document.getElementById('avatar-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const div = document.createElement('div');
+        div.className = 'av';
+        div.innerHTML = `<img src="${i}.png" onerror="this.style.display='none';this.parentElement.textContent='${i}'">`;
+        div.onclick = () => selectAvatar(i + '.png', div);
+        if (myAvatar === i + '.png') div.classList.add('selected');
+        grid.appendChild(div);
+    }
+    
+    const skinGrid = document.getElementById('skin-grid');
+    skinGrid.innerHTML = '';
+    const skinNames = ['Казах', 'Киргиз', 'Коч Коч Братан', 'Алматинский Барс', 'Степной Волк'];
+    for (let i = 1; i <= 5; i++) {
+        const div = document.createElement('div');
+        div.className = 'sk';
+        div.innerHTML = `<img src="skin${i}.png" onerror="this.style.display='none'"><span>${skinNames[i-1]}</span>`;
+        div.onclick = () => selectSkin(i + '.png', skinNames[i-1], div);
+        if (skinFile === i + '.png') div.classList.add('selected');
+        skinGrid.appendChild(div);
+    }
+}
+
+function selectAvatar(file, el) {
+    document.querySelectorAll('#avatar-grid .av').forEach(a => a.classList.remove('selected'));
+    el.classList.add('selected');
+    myAvatar = file;
+    document.getElementById('profile-avatar-img').src = file;
+    document.getElementById('profile-avatar-img').style.display = 'inline';
+    document.getElementById('profile-avatar-emoji').style.display = 'none';
+    addChatMessage(`🖼️ Аватар изменён на ${file}`, 'system');
+}
+
+function resetAvatar() {
+    myAvatar = '';
+    document.querySelectorAll('#avatar-grid .av').forEach(a => a.classList.remove('selected'));
+    document.getElementById('profile-avatar-img').style.display = 'none';
+    document.getElementById('profile-avatar-emoji').style.display = 'inline';
+    addChatMessage(`🖼️ Аватар сброшен`, 'system');
+}
+
+function selectSkin(file, name, el) {
+    document.querySelectorAll('#skin-grid .sk').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    skinFile = file;
+    skin = name;
+    document.getElementById('hudSkin').textContent = skin;
+    document.getElementById('profile-skin').textContent = skin;
+    addChatMessage(`🎨 Скин "${name}" выбран`, 'system');
+}
+
+function resetSkin() {
+    skinFile = '';
+    skin = 'Казах';
+    document.querySelectorAll('#skin-grid .sk').forEach(s => s.classList.remove('selected'));
+    document.getElementById('hudSkin').textContent = skin;
+    document.getElementById('profile-skin').textContent = skin;
+    addChatMessage(`🎨 Скин сброшен на "Казах"`, 'system');
+}
+
+// ============================================================
+//  УПРАВЛЕНИЕ ВКЛАДКАМИ
+// ============================================================
+function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+}
+
+// ============================================================
+//  ВЫБОР КАРТЫ И КОМАНДЫ
+// ============================================================
+let pendingMap = null;
+
+function selectMap(mapType) {
+    pendingMap = mapType;
+    const names = { 'dust2': 'Dust 2', 'Aztec': 'Aztec', 'Almaty': 'Алматы', 'Kavkaz': 'Кавказ' };
+    document.getElementById('selected-map-name').textContent = names[mapType] || mapType;
+    document.getElementById('current-map-display').textContent = names[mapType] || mapType;
+    document.getElementById('team-select').style.display = 'flex';
+    document.querySelector('#tab-play .btn-row').style.display = 'none';
+}
+
+function cancelTeamSelect() {
+    document.getElementById('team-select').style.display = 'none';
+    document.querySelector('#tab-play .btn-row').style.display = 'flex';
+    document.getElementById('current-map-display').textContent = 'Не выбрана';
+    pendingMap = null;
+}
+
+function startGameWithTeam(team) {
+    if (!pendingMap) return;
+    myTeam = team;
+    isSpectator = (team === 'spec');
+    startGame(pendingMap, team);
+    stopMenuMusic();
+}
+
+// ============================================================
+//  ИНИЦИАЛИЗАЦИЯ 3D
+// ============================================================
+function init3D() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB);
+    scene.fog = new THREE.Fog(0x87CEEB, 50, 100);
+    
+    camera = new THREE.PerspectiveCamera(fovValue, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 8, 15);
+    camera.lookAt(0, 0, 0);
+    
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.prepend(renderer.domElement);
+    
+    const ambient = new THREE.AmbientLight(0x404060);
+    scene.add(ambient);
+    
+    const sun = new THREE.DirectionalLight(0xffeedd, 1);
+    sun.position.set(20, 30, 10);
+    sun.castShadow = true;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 60;
+    sun.shadow.camera.left = -30;
+    sun.shadow.camera.right = 30;
+    sun.shadow.camera.top = 30;
+    sun.shadow.camera.bottom = -30;
+    scene.add(sun);
+    
+    const hemi = new THREE.HemisphereLight(0x87CEEB, 0x362d1e, 0.6);
+    scene.add(hemi);
+}
+
+function updateFOV(val) {
+    fovValue = parseInt(val);
+    if (camera) {
+        camera.fov = fovValue;
+        camera.updateProjectionMatrix();
+    }
+}
+
+// ============================================================
+//  СОЗДАНИЕ КАРТЫ
+// ============================================================
+function createMap(mapType) {
+    mapWalls.forEach(w => scene.remove(w));
+    mapWalls = [];
+    
+    const mapConfig = {
+        'dust2': {
+            bg: 0x8B7355,
+            ground: 0x8B7355,
+            spawns: { red: { x: -10, z: -10 }, blue: { x: 10, z: 10 }, spec: { x: 0, z: -14 } },
+            name: 'Dust 2'
+        },
+        'Aztec': {
+            bg: 0x2d5a27,
+            ground: 0x2d5a27,
+            spawns: { red: { x: -12, z: -12 }, blue: { x: 12, z: 12 }, spec: { x: 0, z: -14 } },
+            name: 'Aztec'
+        },
+        'Almaty': {
+            bg: 0x6b8e6b,
+            ground: 0x6b8e6b,
+            spawns: { red: { x: -13, z: -13 }, blue: { x: 13, z: 13 }, spec: { x: 0, z: -14 } },
+            name: 'Алматы'
+        },
+        'Kavkaz': {
+            bg: 0x4a674a,
+            ground: 0x4a674a,
+            spawns: { red: { x: -12, z: -12 }, blue: { x: 12, z: 12 }, spec: { x: 0, z: -14 } },
+            name: 'Кавказ'
+        }
+    };
+    
+    const config = mapConfig[mapType] || mapConfig['dust2'];
+    mapName = config.name;
+    mapSpawns = config.spawns;
+    scene.background = new THREE.Color(config.bg);
+    
+    const groundGeo = new THREE.PlaneGeometry(30, 30);
+    const groundMat = new THREE.MeshStandardMaterial({ color: config.ground, roughness: 0.8 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.5;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    
+    const wallPositions = [
+        { x: -15, z: -15, w: 30, d: 1 },
+        { x: -15, z: 15, w: 30, d: 1 },
+        { x: -15, z: -15, w: 1, d: 30 },
+        { x: 15, z: -15, w: 1, d: 30 },
+    ];
+    wallPositions.forEach(w => {
+        const geo = new THREE.BoxGeometry(w.w, 3, w.d);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x8B7D6B, roughness: 0.9, transparent: true, opacity: 0.3 });
+        const wall = new THREE.Mesh(geo, mat);
+        wall.position.set(w.x, 1, w.z);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        scene.add(wall);
+        mapWalls.push(wall);
+    });
+    
+    for (let i = 0; i < 20; i++) {
+        const tree = createTree();
+        let x = (Math.random() - 0.5) * 28;
+        let z = (Math.random() - 0.5) * 28;
+        tree.position.set(x, 0, z);
+        scene.add(tree);
+    }
+    
+    const spawn = isSpectator ? mapSpawns.spec : (myTeam === 'red' ? mapSpawns.red : mapSpawns.blue);
+    myPos.x = spawn.x;
+    myPos.z = spawn.z;
+    updatePlayerPosition();
+}
+
+function createTree() {
+    const group = new THREE.Group();
+    const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.3, 1.5),
+        new THREE.MeshStandardMaterial({ color: 0x8B5A2B })
+    );
+    trunk.position.y = 0.75;
+    group.add(trunk);
+    const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 6, 6),
+        new THREE.MeshStandardMaterial({ color: 0x2d8a4e })
+    );
+    crown.position.y = 1.8;
+    crown.scale.y = 0.7;
+    group.add(crown);
+    return group;
+}
+
+function updatePlayerPosition() {
+    if (!camera) return;
+    if (isSpectator) {
+        camera.position.set(0, 20, 0);
+        camera.lookAt(0, 0, 0);
+    } else {
+        camera.position.set(myPos.x, 1.5, myPos.z);
+        camera.lookAt(
+            myPos.x + Math.sin(myRot),
+            1.5,
+            myPos.z + Math.cos(myRot)
+        );
+    }
+}
+
+// ============================================================
+//  БОТЫ
+// ============================================================
+function createBot(x, z, team) {
+    const botNames = {
+        red: ['BATYR', 'KZ_BOSS', 'SteppeWolf', 'Khan_2024', 'Abylay', 'Saken', 'Madi', 'Erlan'],
+        blue: ['Nomad', 'AlmatyKing', 'Kazakh_Killer', 'Tengri', 'Aidar', 'Ruslan', 'Nurzhan', 'Daniyar']
+    };
+    const botAvatars = ['🇰🇿', '🐺', '⚔️', '🏹', '🐎', '🔥', '💪', '⚡', '🌾', '🏔️'];
+    
+    const bot = {
+        x: x, z: z, y: 0,
+        rot: Math.random() * Math.PI * 2,
+        speed: 0.02 + Math.random() * 0.025,
+        hp: 100,
+        maxHp: 100,
+        team: team,
+        name: botNames[team][Math.floor(Math.random() * botNames[team].length)] + (Math.random() > 0.5 ? '96' : '07'),
+        avatar: botAvatars[Math.floor(Math.random() * botAvatars.length)],
+        skin: ['Казах', 'Киргиз', 'Коч Коч Братан', 'Алматинский Барс', 'Степной Волк'][Math.floor(Math.random() * 5)],
+        state: 'idle',
+        shootTimer: 0,
+        targetX: 0, targetZ: 0,
+        lastChatTime: 0,
+        mesh: null,
+        server: null,
+        targetPlayer: null,
+        targetChangeTimer: 0
+    };
+    
+    const group = new THREE.Group();
+    const color = team === 'red' ? 0xcc3333 : 0x3366cc;
+    const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.5, 1.2),
+        new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 })
+    );
+    body.position.y = 0.6;
+    group.add(body);
+    
+    const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.25, 8, 8),
+        new THREE.MeshStandardMaterial({ color: 0xDEB887 })
+    );
+    head.position.y = 1.3;
+    group.add(head);
+    
+    const hat = new THREE.Mesh(
+        new THREE.ConeGeometry(0.3, 0.15, 8),
+        new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+    );
+    hat.position.y = 1.45;
+    group.add(hat);
+    
+    const gun = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.03, 0.05, 0.8),
+        new THREE.MeshStandardMaterial({ color: team === 'red' ? 0xcc3333 : 0x3366cc })
+    );
+    gun.rotation.x = Math.PI / 2;
+    gun.position.set(0.4, 0.4, 0.4);
+    group.add(gun);
+    
+    group.position.set(x, 0, z);
+    scene.add(group);
+    bot.mesh = group;
+    
+    allPlayers.push({
+        name: bot.name,
+        team: team,
+        isBot: true,
+        hp: 100,
+        x: x,
+        z: z,
+        avatar: bot.avatar,
+        bot: bot
+    });
+    
+    return bot;
+}
+
+function spawnBots(count) {
+    const half = Math.floor(count / 2);
+    for (let i = 0; i < count; i++) {
+        const team = i < half ? 'red' : 'blue';
+        const spawn = team === 'red' ? mapSpawns.red : mapSpawns.blue;
+        let x = spawn.x + (Math.random() - 0.5) * 5;
+        let z = spawn.z + (Math.random() - 0.5) * 5;
+        const bot = createBot(x, z, team);
+        bots.push(bot);
+        if (Math.random() > 0.7) {
+            const serverName = ['KZ_SERVER', 'ALMATY_HUB', 'STEPPE_NET', 'TENGRI_GAME', 'NOMAD_ARENA'][Math.floor(Math.random() * 5)];
+            const server = {
+                name: serverName + '_' + Math.floor(Math.random() * 100),
+                players: Math.floor(Math.random() * 10) + 2,
+                ping: Math.floor(Math.random() * 80) + 20,
+                map: ['Dust 2', 'Aztec', 'Алматы', 'Кавказ'][Math.floor(Math.random() * 4)]
+            };
+            serverList.push(server);
+            bot.server = server;
+            addChatMessage(`🤖 ${bot.name} (${team === 'red' ? '🔴' : '🔵'}) создал сервер ${server.name}`, 'system');
+        }
+    }
+    updatePlayersList();
+    updateServerListUI();
+}
+
+// ============================================================
+//  ПУЛИ
+// ============================================================
+function shootBullet(fromX, fromZ, rot, isBot = false, botName = '') {
+    const now = Date.now();
+    if (!isBot && now - lastShotTime < shootCooldown) return;
+    if (!isBot) lastShotTime = now;
+    if (isSpectator) return;
+    
+    const geo = new THREE.TorusGeometry(0.08, 0.04, 6, 6);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
+    const bullet = new THREE.Mesh(geo, mat);
+    bullet.position.set(fromX, 0.5, fromZ);
+    bullet.rotation.x = Math.PI / 2;
+    scene.add(bullet);
+    
+    const speed = 0.5;
+    const dir = { x: Math.sin(rot), z: Math.cos(rot) };
+    
+    bullets.push({
+        mesh: bullet,
+        x: fromX, z: fromZ,
+        dx: dir.x * speed, dz: dir.z * speed,
+        life: 80,
+        isBot: isBot,
+        owner: isBot ? botName : 'player'
+    });
+    
+    createMuzzleFlash(fromX, fromZ, rot);
+}
+
+function createMuzzleFlash(x, z, rot) {
+    const flash = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 6, 6),
+        new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8 })
+    );
+    flash.position.set(x + Math.sin(rot) * 0.6, 0.5, z + Math.cos(rot) * 0.6);
+    scene.add(flash);
+    particles.push({ mesh: flash, life: 5, type: 'flash' });
+}
+
+function throwKumis(fromX, fromZ, rot) {
+    if (isSpectator) return;
+    const geo = new THREE.SphereGeometry(0.15, 8, 8);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xF5DEB3, emissive: 0x8B7D3C, emissiveIntensity: 0.2 });
+    const kumis = new THREE.Mesh(geo, mat);
+    kumis.position.set(fromX, 0.5, fromZ);
+    scene.add(kumis);
+    
+    const speed = 0.3;
+    const dir = { x: Math.sin(rot), z: Math.cos(rot) };
+    
+    bullets.push({
+        mesh: kumis,
+        x: fromX, z: fromZ,
+        dx: dir.x * speed, dz: dir.z * speed,
+        life: 120,
+        isBot: false,
+        owner: 'player',
+        isKumis: true
+    });
+}
+
+function throwKumisMobile() {
+    if (gameRunning && !isSpectator) {
+        throwKumis(myPos.x, myPos.z, myRot);
+        if (vibrationEnabled) navigator.vibrate?.(50);
+    }
+}
+
+// ============================================================
+//  ОБНОВЛЕНИЕ
+// ============================================================
+function updateGame() {
+    if (!gameRunning) return;
+    gameTime++;
+    
+    if (!isSpectator && joystickActive) {
+        const len = Math.sqrt(joystickData.x * joystickData.x + joystickData.y * joystickData.y);
+        if (len > 0.1) {
+            const normX = joystickData.x / len;
+            const normY = joystickData.y / len;
+            const speed = Math.min(len, 1) * 0.08;
+            const moveX = Math.sin(myRot) * -normY * speed + Math.cos(myRot) * normX * speed;
+            const moveZ = Math.cos(myRot) * -normY * speed - Math.sin(myRot) * normX * speed;
+            myPos.x += moveX;
+            myPos.z += moveZ;
+            myPos.x = Math.max(-14, Math.min(14, myPos.x));
+            myPos.z = Math.max(-14, Math.min(14, myPos.z));
+            updatePlayerPosition();
+        }
+    }
+    
+    if (!isSpectator && isFiring) {
+        shootBullet(myPos.x, myPos.z, myRot);
+    }
+    
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.x += b.dx;
+        b.z += b.dz;
+        b.life--;
+        b.mesh.position.set(b.x, 0.5, b.z);
+        
+        if (!b.isBot && !isSpectator) {
+            for (const bot of bots) {
+                if (bot.hp <= 0) continue;
+                const dist = Math.sqrt((b.x - bot.x) ** 2 + (b.z - bot.z) ** 2);
+                if (dist < 0.8) {
+                    if (!friendlyFire && bot.team === myTeam) {
+                        scene.remove(b.mesh);
+                        bullets.splice(i, 1);
+                        break;
+                    }
+                    bot.hp -= b.isKumis ? 30 : 20;
+                    createHitEffect(bot.x, bot.z);
+                    if (bot.hp <= 0) {
+                        kills++;
+                        const bonus = (bot.team === myTeam) ? -50 : 100;
+                        money += bonus;
+                        addChatMessage(`💀 ${bot.name} (${bot.team === 'red' ? '🔴' : '🔵'}) убит! ${bonus > 0 ? '+' : ''}${bonus} ₸`, 'system');
+                        updateMoneyDisplay();
+                        const pIdx = allPlayers.findIndex(p => p.bot === bot);
+                        if (pIdx !== -1) allPlayers[pIdx].hp = 0;
+                        updatePlayersList();
+                        setTimeout(() => {
+                            if (gameRunning) {
+                                const spawn = bot.team === 'red' ? mapSpawns.red : mapSpawns.blue;
+                                bot.x = spawn.x + (Math.random() - 0.5) * 4;
+                                bot.z = spawn.z + (Math.random() - 0.5) * 4;
+                                bot.hp = bot.maxHp;
+                                bot.mesh.position.set(bot.x, 0, bot.z);
+                                const pIdx2 = allPlayers.findIndex(p => p.bot === bot);
+                                if (pIdx2 !== -1) allPlayers[pIdx2].hp = 100;
+                                updatePlayersList();
+                            }
+                        }, 3000);
+                    }
+                    scene.remove(b.mesh);
+                    bullets.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        
+        if (b.isBot && !isSpectator) {
+            const dist = Math.sqrt((b.x - myPos.x) ** 2 + (b.z - myPos.z) ** 2);
+            if (dist < 0.8) {
+                myHp -= b.isKumis ? 30 : 15;
+                createHitEffect(myPos.x, myPos.z);
+                updateHpBar();
+                if (myHp <= 0) {
+                    const spawn = myTeam === 'red' ? mapSpawns.red : mapSpawns.blue;
+                    myPos.x = spawn.x;
+                    myPos.z = spawn.z;
+                    myHp = maxHp;
+                    updateHpBar();
+                    updatePlayerPosition();
+                    addChatMessage(`💀 Вас убили! (Респавн)`, 'system');
+                    updatePlayersList();
+                }
+                scene.remove(b.mesh);
+                bullets.splice(i, 1);
+                continue;
+            }
+        }
+        
+        if (b.life <= 0 || Math.abs(b.x) > 20 || Math.abs(b.z) > 20) {
+            scene.remove(b.mesh);
+            bullets.splice(i, 1);
+        }
+    }
+    
+    for (const bot of bots) {
+        if (bot.hp <= 0) continue;
+        
+        bot.targetChangeTimer--;
+        if (bot.targetChangeTimer <= 0 || !bot.targetPlayer) {
+            let enemies = [];
+            if (!isSpectator && bot.team !== myTeam && myHp > 0) {
+                enemies.push({ x: myPos.x, z: myPos.z, name: nick, isPlayer: true });
+            }
+            for (const otherBot of bots) {
+                if (otherBot === bot) continue;
+                if (otherBot.hp <= 0) continue;
+                if (otherBot.team !== bot.team) {
+                    enemies.push({ x: otherBot.x, z: otherBot.z, name: otherBot.name, isPlayer: false, bot: otherBot });
+                }
+            }
+            if (enemies.length > 0) {
+                bot.targetPlayer = enemies[Math.floor(Math.random() * enemies.length)];
+                bot.targetChangeTimer = 60 + Math.random() * 120;
+            } else {
+                bot.targetPlayer = null;
+                bot.targetChangeTimer = 30;
+            }
+        }
+        
+        if (bot.targetPlayer) {
+            const targetX = bot.targetPlayer.x;
+            const targetZ = bot.targetPlayer.z;
+            const dx = targetX - bot.x;
+            const dz = targetZ - bot.z;
+            const dist = Math.sqrt(dx*dx + dz*dz);
+            
+            if (dist > 0.5) {
+                const moveX = (dx / dist) * bot.speed;
+                const moveZ = (dz / dist) * bot.speed;
+                bot.x += moveX;
+                bot.z += moveZ;
+                bot.x = Math.max(-14, Math.min(14, bot.x));
+                bot.z = Math.max(-14, Math.min(14, bot.z));
+                bot.mesh.position.set(bot.x, 0, bot.z);
+                bot.rot = Math.atan2(dx, dz);
+                bot.mesh.rotation.y = bot.rot;
+            }
+            
+            bot.shootTimer--;
+            if (bot.shootTimer <= 0 && dist < 12) {
+                const angle = Math.atan2(targetX - bot.x, targetZ - bot.z);
+                shootBullet(bot.x, bot.z, angle, true, bot.name);
+                bot.shootTimer = 20 + Math.random() * 30;
+            } else if (bot.shootTimer <= 0) {
+                bot.shootTimer = 5 + Math.random() * 15;
+            }
+        } else {
+            if (Math.random() > 0.99 || Math.abs(bot.x - bot.targetX) < 0.5 && Math.abs(bot.z - bot.targetZ) < 0.5) {
+                bot.targetX = (Math.random() - 0.5) * 20;
+                bot.targetZ = (Math.random() - 0.5) * 20;
+            }
+            const dxb = bot.targetX - bot.x;
+            const dzb = bot.targetZ - bot.z;
+            const distb = Math.sqrt(dxb*dxb + dzb*dzb);
+            if (distb > 0.3) {
+                const moveX = (dxb / distb) * bot.speed * 0.5;
+                const moveZ = (dzb / distb) * bot.speed * 0.5;
+                bot.x += moveX;
+                bot.z += moveZ;
+                bot.x = Math.max(-14, Math.min(14, bot.x));
+                bot.z = Math.max(-14, Math.min(14, bot.z));
+                bot.mesh.position.set(bot.x, 0, bot.z);
+                bot.rot = Math.atan2(dxb, dzb);
+                bot.mesh.rotation.y = bot.rot;
+            }
+            bot.shootTimer = 10;
+        }
+        
+        bot.lastChatTime--;
+        if (bot.lastChatTime <= 0) {
+            const teamEmoji = bot.team === 'red' ? '🔴' : '🔵';
+            const phrases = [
+                `💬 ${bot.name}: ${teamEmoji} Қазақстан!`,
+                `💬 ${bot.name}: ${teamEmoji} Ким келди?`,
+                `💬 ${bot.name}: ${teamEmoji} Ай, жақсы!`,
+                `💬 ${bot.name}: ${teamEmoji} Коч коч братан!`,
+                `💬 ${bot.name}: ${teamEmoji} Кумыс ишеміз бе?`,
+                `💬 ${bot.name}: ${teamEmoji} ${bot.avatar} Сәлем!`
+            ];
+            addChatMessage(phrases[Math.floor(Math.random() * phrases.length)], 'bot');
+            bot.lastChatTime = 80 + Math.random() * 140;
+        }
+    }
+    
+    if (Math.random() > 0.97 && serverList.length > 0) {
+        const sv = serverList[Math.floor(Math.random() * serverList.length)];
+        addChatMessage(`🌐 Сервер ${sv.name}: ${sv.players} игроков, ${sv.ping}ms`, 'system');
+    }
+    
+    botSpawnTimer--;
+    if (botSpawnTimer <= 0 && bots.length < botCountSetting + 2) {
+        const team = Math.random() > 0.5 ? 'red' : 'blue';
+        const spawn = team === 'red' ? mapSpawns.red : mapSpawns.blue;
+        const bot = createBot(spawn.x + (Math.random() - 0.5) * 4, spawn.z + (Math.random() - 0.5) * 4, team);
+        bots.push(bot);
+        addChatMessage(`🤖 ${bot.name} (${team === 'red' ? '🔴' : '🔵'}) присоединился!`, 'system');
+        botSpawnTimer = 150 + Math.random() * 200;
+    }
+    
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life--;
+        if (p.type === 'flash') p.mesh.material.opacity = p.life / 5;
+        if (p.life <= 0) {
+            scene.remove(p.mesh);
+            particles.splice(i, 1);
+        }
+    }
+    
+    document.getElementById('hudMoney').textContent = money;
+    document.getElementById('hudSkin').textContent = skin;
+    document.getElementById('hudNick').textContent = nick;
+    const teamLabel = isSpectator ? 'НАБЛЮДАТЕЛЬ' : (myTeam === 'red' ? 'КРАСНЫЕ' : 'СИНИЕ');
+    document.getElementById('hudTeam').textContent = teamLabel;
+    document.getElementById('hudTeam').className = isSpectator ? 'team-spec' : (myTeam === 'red' ? 'team-red' : 'team-blue');
+}
+
+function updateMoneyDisplay() {
+    document.getElementById('moneyDisplay').textContent = money;
+    document.getElementById('hudMoney').textContent = money;
+    document.getElementById('profile-money').textContent = money;
+    document.getElementById('profile-kills').textContent = kills;
+}
+
+function updateHpBar() {
+    const pct = Math.max(0, (myHp / maxHp) * 100);
+    document.getElementById('hp-fill').style.width = pct + '%';
+    document.getElementById('hp-value').textContent = Math.round(myHp);
+    const fill = document.getElementById('hp-fill');
+    if (pct > 60) fill.style.background = 'linear-gradient(90deg, #00ff00, #44ff44)';
+    else if (pct > 30) fill.style.background = 'linear-gradient(90deg, #ffaa00, #ffcc00)';
+    else fill.style.background = 'linear-gradient(90deg, #ff0000, #ff4444)';
+}
+
+function createHitEffect(x, z) {
+    const flash = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.6 })
+    );
+    flash.position.set(x, 0.5, z);
+    scene.add(flash);
+    particles.push({ mesh: flash, life: 10, type: 'flash' });
+}
+
+// ============================================================
+//  СПИСОК ИГРОКОВ
+// ============================================================
+function updatePlayersList() {
+    const container = document.getElementById('players-list');
+    if (!container) return;
+    let html = '<div style="color:#aaa;font-size:0.8em;margin-bottom:4px;">👥 Игроки (' + (allPlayers.length + 1) + ')</div>';
+    
+    const playerTeam = isSpectator ? 'spec' : myTeam;
+    const playerHp = isSpectator ? '∞' : (myHp > 0 ? '❤️' : '💀');
+    html += `<div class="player ${playerTeam} you">
+        <span class="avatar">${myAvatar ? `<img src="${myAvatar}">` : (isSpectator ? '👁️' : (myTeam === 'red' ? '🔴' : '🔵'))}</span>
+        <span class="name">${nick} ${isSpectator ? '(👁️)' : ''}</span>
+        <span class="hp">${isSpectator ? '∞' : Math.round(myHp) + ' HP'}</span>
+    </div>`;
+    
+    for (const p of allPlayers) {
+        if (p.isBot) {
+            const teamClass = p.team === 'red' ? 'red' : 'blue';
+            const deadClass = p.bot.hp <= 0 ? 'dead' : '';
+            html += `<div class="player ${teamClass} ${deadClass}">
+                <span class="avatar">${p.avatar || '🤖'}</span>
+                <span class="name">${p.name}</span>
+                <span class="hp">${p.bot.hp > 0 ? Math.round(p.bot.hp) + ' HP' : '💀'}</span>
+            </div>`;
+        }
+    }
+    
+    container.innerHTML = html;
+}
+
+// ============================================================
+//  ЧАТ
+// ============================================================
+function addChatMessage(text, type = 'player') {
+    chatMessages.push({ text, type, time: Date.now() });
+    if (chatMessages.length > 50) chatMessages.shift();
+    updateChatDisplay();
+}
+
+function updateChatDisplay() {
+    const container = document.getElementById('chat');
+    if (!container) return;
+    container.innerHTML = chatMessages.slice(-15).map(msg => 
+        `<div class="msg ${msg.type}">${msg.text}</div>`
+    ).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    if (!input || !input.value.trim()) return;
+    const teamEmoji = isSpectator ? '👁️' : (myTeam === 'red' ? '🔴' : '🔵');
+    addChatMessage(`💬 ${teamEmoji} ${nick}: ${input.value}`, 'player');
+    const teamBots = bots.filter(b => b.hp > 0 && b.team === myTeam);
+    if (teamBots.length > 0 && Math.random() > 0.5) {
+        const bot = teamBots[Math.floor(Math.random() * teamBots.length)];
+        const replies = ['Сәлем!', 'Қалайсың?', 'Жақсы!', 'Кумыс ішейік!', 'Коч коч!'];
+        addChatMessage(`💬 ${bot.name}: ${replies[Math.floor(Math.random() * replies.length)]}`, 'bot');
+    }
+    input.value = '';
+    document.getElementById('chat-input').style.display = 'none';
+}
+
+function toggleChat() {
+    const input = document.getElementById('chat-input');
+    if (!input) return;
+    input.style.display = input.style.display === 'none' ? 'block' : 'none';
+    if (input.style.display === 'block') input.focus();
+}
+
+// ============================================================
+//  КОМАНДЫ
+// ============================================================
+function switchTeam(team) {
+    if (team === myTeam && !isSpectator) return;
+    isSpectator = (team === 'spec');
+    myTeam = team;
+    
+    const spawn = isSpectator ? mapSpawns.spec : (team === 'red' ? mapSpawns.red : mapSpawns.blue);
+    myPos.x = spawn.x;
+    myPos.z = spawn.z;
+    if (!isSpectator) {
+        myHp = maxHp;
+        updateHpBar();
+    }
+    updatePlayerPosition();
+    addChatMessage(`🔄 Перешли в ${isSpectator ? '👁️ НАБЛЮДАТЕЛИ' : (team === 'red' ? '🔴 КРАСНЫЕ' : '🔵 СИНИЕ')}`, 'system');
+    document.getElementById('in-game-menu').style.display = 'none';
+    updatePlayersList();
+    
+    const teamLabel = isSpectator ? 'НАБЛЮДАТЕЛЬ' : (team === 'red' ? 'КРАСНЫЕ' : 'СИНИЕ');
+    document.getElementById('hudTeam').textContent = teamLabel;
+    document.getElementById('hudTeam').className = isSpectator ? 'team-spec' : (team === 'red' ? 'team-red' : 'team-blue');
+}
+
+// ============================================================
+//  УПРАВЛЕНИЕ
+// ============================================================
+document.addEventListener('keydown', (e) => {
+    if (!gameRunning) return;
+    const key = e.key.toLowerCase();
+    if (key === ' ') { e.preventDefault(); throwKumisMobile(); }
+    if (key === 'v' || key === 'м') { playRandomVoice(); }
+    if (key === 't' || key === 'т') toggleChat();
+    if (key === 'b' || key === 'и') openShop();
+    if (key === 'escape') {
+        document.getElementById('chat-input').style.display = 'none';
+        if (document.getElementById('shop').style.display === 'block') closeShop();
+        if (document.getElementById('server-list').style.display === 'block') closeServers();
+        if (document.getElementById('in-game-menu').style.display === 'block') {
+            document.getElementById('in-game-menu').style.display = 'none';
+        } else {
+            toggleInGameMenu();
+        }
+    }
+});
+
+// ============================================================
+//  ДЖОЙСТИК
+// ============================================================
+const joystickArea = document.getElementById('joystick-area');
+const joystickBg = document.getElementById('joystick-bg');
+const joystickThumb = document.getElementById('joystick-thumb');
+
+function handleJoystickStart(clientX, clientY, touchId) {
+    const rect = joystickBg.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const maxDist = rect.width / 2 - 22;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const clamped = Math.min(dist, maxDist);
+    const angle = Math.atan2(dy, dx);
+    const moveX = Math.cos(angle) * clamped;
+    const moveY = Math.sin(angle) * clamped;
+    
+    joystickThumb.style.transform = `translate(${-22.5 + moveX}px, ${-22.5 + moveY}px)`;
+    joystickActive = true;
+    joystickTouchId = touchId;
+    joystickData.x = dist > 5 ? moveX / maxDist : 0;
+    joystickData.y = dist > 5 ? moveY / maxDist : 0;
+}
+
+function handleJoystickMove(clientX, clientY, touchId) {
+    if (touchId !== joystickTouchId) return;
+    const rect = joystickBg.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const maxDist = rect.width / 2 - 22;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const clamped = Math.min(dist, maxDist);
+    const angle = Math.atan2(dy, dx);
+    const moveX = Math.cos(angle) * clamped;
+    const moveY = Math.sin(angle) * clamped;
+    
+    joystickThumb.style.transform = `translate(${-22.5 + moveX}px, ${-22.5 + moveY}px)`;
+    joystickData.x = dist > 5 ? moveX / maxDist : 0;
+    joystickData.y = dist > 5 ? moveY / maxDist : 0;
+}
+
+function handleJoystickEnd(touchId) {
+    if (touchId !== joystickTouchId) return;
+    joystickThumb.style.transform = 'translate(-50%, -50%)';
+    joystickActive = false;
+    joystickTouchId = null;
+    joystickData.x = 0;
+    joystickData.y = 0;
+}
+
+joystickArea.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    handleJoystickStart(touch.clientX, touch.clientY, touch.identifier);
+});
+
+joystickArea.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    handleJoystickMove(touch.clientX, touch.clientY, touch.identifier);
+});
+
+joystickArea.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    for (const touch of e.changedTouches) {
+        handleJoystickEnd(touch.identifier);
+    }
+});
+
+joystickArea.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    handleJoystickEnd(null);
+});
+
+joystickArea.addEventListener('mousedown', (e) => {
+    handleJoystickStart(e.clientX, e.clientY, 'mouse');
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (joystickTouchId === 'mouse') {
+        handleJoystickMove(e.clientX, e.clientY, 'mouse');
+    }
+});
+
+document.addEventListener('mouseup', (e) => {
+    if (joystickTouchId === 'mouse') {
+        handleJoystickEnd('mouse');
+    }
+});
+
+// ============================================================
+//  СВАЙП ДЛЯ ПОВОРОТА
+// ============================================================
+let lastTouchX = 0;
+let isTouchDragging = false;
+let touchId = null;
+
+document.addEventListener('touchstart', (e) => {
+    if (!gameRunning || isSpectator) return;
+    const target = e.target;
+    if (target.id === 'fire-btn' || target.id === 'kumis-btn' || target.id === 'voice-btn' ||
+        target.id === 'joystick-area' || target.id === 'joystick-bg' || 
+        target.id === 'joystick-thumb' || target.closest('#shop') || 
+        target.closest('#server-list') || target.closest('#menu') ||
+        target.closest('#in-game-menu') || target.id === 'menu-btn' ||
+        target.id === 'shop-btn' || target.id === 'chat-btn' ||
+        target.id === 'chat-input') {
+        return;
+    }
+    for (const touch of e.changedTouches) {
+        if (touchId === null) {
+            lastTouchX = touch.clientX;
+            isTouchDragging = true;
+            touchId = touch.identifier;
+            break;
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+    if (!gameRunning || isSpectator || !isTouchDragging || touchId === null) return;
+    for (const touch of e.changedTouches) {
+        if (touch.identifier === touchId) {
+            const deltaX = touch.clientX - lastTouchX;
+            myRot += deltaX * mouseSensitivity;
+            updatePlayerPosition();
+            lastTouchX = touch.clientX;
+            break;
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    for (const touch of e.changedTouches) {
+        if (touch.identifier === touchId) {
+            isTouchDragging = false;
+            touchId = null;
+            break;
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('touchcancel', () => {
+    isTouchDragging = false;
+    touchId = null;
+}, { passive: true });
+
+// ============================================================
+//  ОГОНЬ
+// ============================================================
+function startFire() {
+    if (!isSpectator) {
+        isFiring = true;
+        if (vibrationEnabled) navigator.vibrate?.(30);
+    }
+}
+
+function stopFire() {
+    isFiring = false;
+}
+
+// ============================================================
+//  МЕНЮ В ИГРЕ
+// ============================================================
+function toggleInGameMenu() {
+    const menu = document.getElementById('in-game-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+// ============================================================
+//  НАСТРОЙКИ
+// ============================================================
+function toggleFriendlyFire(el) {
+    el.classList.toggle('on');
+    friendlyFire = el.classList.contains('on');
+}
+
+function toggleVibration(el) {
+    el.classList.toggle('on');
+    vibrationEnabled = el.classList.contains('on');
+}
+
+function resetSettings() {
+    document.getElementById('vol-val').textContent = '70';
+    document.getElementById('sens-val').textContent = '10';
+    document.getElementById('fov-val').textContent = '75';
+    mouseSensitivity = 0.1;
+    updateFOV(75);
+    updateVolume(70);
+    const ff = document.getElementById('ff-toggle');
+    if (!ff.classList.contains('on')) ff.classList.add('on');
+    const vib = document.getElementById('vib-toggle');
+    if (!vib.classList.contains('on')) vib.classList.add('on');
+    const mus = document.getElementById('music-toggle');
+    if (!mus.classList.contains('on')) mus.classList.add('on');
+    document.querySelector('#tab-settings select').value = '6';
+    botCountSetting = 6;
+    friendlyFire = true;
+    vibrationEnabled = true;
+    musicEnabled = true;
+    if (menuAudio) menuAudio.volume = volume * 0.5;
+}
+
+// ============================================================
+//  ПРОФИЛЬ
+// ============================================================
+function setNickFromProfile() {
+    const input = document.getElementById('profile-nick-input');
+    if (input.value.trim()) {
+        nick = input.value.trim();
+        document.getElementById('profile-nick').textContent = nick;
+        document.getElementById('nickDisplay').textContent = nick;
+        document.getElementById('hudNick').textContent = nick;
+        addChatMessage(`👤 Ник изменён на ${nick}`, 'system');
+        input.value = '';
+    }
+}
+
+// ============================================================
+//  СЕРВЕРА
+// ============================================================
+function updateServerListUI() {
+    const container = document.getElementById('server-list-container');
+    if (!container) return;
+    if (serverList.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">Нет активных серверов</div>';
+        return;
+    }
+    container.innerHTML = serverList.map(s => 
+        `<div class="server">🌐 ${s.name} | ${s.map} | ${s.players} игроков | ${s.ping}ms</div>`
+    ).join('');
+}
+
+function refreshServers() {
+    updateServerListUI();
+    addChatMessage('🔄 Сервера обновлены', 'system');
+}
+
+function showServers() {
+    document.getElementById('server-list').style.display = 'block';
+    document.getElementById('serverListContainer').innerHTML = 
+        serverList.length > 0 ? 
+        serverList.map(s => `<div class="server">🌐 ${s.name} | ${s.map} | ${s.players} игроков | ${s.ping}ms</div>`).join('') :
+        '<div style="color:#888; text-align:center; padding:20px;">Нет активных серверов</div>';
+}
+
+function closeServers() {
+    document.getElementById('server-list').style.display = 'none';
+}
+
+// ============================================================
+//  МАГАЗИН
+// ============================================================
+function openShop() {
+    document.getElementById('shop').style.display = 'block';
+}
+
+function closeShop() {
+    document.getElementById('shop').style.display = 'none';
+}
+
+function buySkin(name, price) {
+    if (price === 0 || money >= price) {
+        if (price > 0) {
+            money -= price;
+            updateMoneyDisplay();
+        }
+        skin = name;
+        document.getElementById('hudSkin').textContent = skin;
+        document.getElementById('profile-skin').textContent = skin;
+        addChatMessage(`✅ Скин "${name}" куплен!`, 'system');
+        closeShop();
+    } else {
+        addChatMessage(`❌ Недостаточно тенге! Нужно ${price} ₸`, 'system');
+    }
+}
+
+// ============================================================
+//  ЗАПУСК ИГРЫ
+// ============================================================
+function startGame(mapType, team) {
+    myTeam = team || 'red';
+    isSpectator = (team === 'spec');
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('shop').style.display = 'none';
+    document.getElementById('server-list').style.display = 'none';
+    document.getElementById('in-game-menu').style.display = 'none';
+    
+    ['hud', 'hp-bar', 'hp-text', 'players-list', 'chat', 'crosshair', 'ammo', 'touch-controls'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    });
+    
+    document.getElementById('hp-bar').style.display = isSpectator ? 'none' : 'block';
+    document.getElementById('hp-text').style.display = isSpectator ? 'none' : 'block';
+    
+    if (!scene) init3D();
+    
+    bots.forEach(b => { if (b.mesh) scene.remove(b.mesh); });
+    bots = [];
+    allPlayers = [];
+    bullets.forEach(b => scene.remove(b.mesh));
+    bullets = [];
+    particles.forEach(p => scene.remove(p.mesh));
+    particles = [];
+    serverList = [];
+    kills = 0;
+    myHp = maxHp;
+    document.getElementById('profile-kills').textContent = '0';
+    updateHpBar();
+    
+    gameRunning = true;
+    createMap(mapType);
+    
+    spawnBots(Math.min(botCountSetting, 8));
+    botSpawnTimer = 60;
+    
+    document.getElementById('mapName').textContent = mapName;
+    document.getElementById('hudMoney').textContent = money;
+    document.getElementById('hudSkin').textContent = skin;
+    document.getElementById('hudNick').textContent = nick;
+    const teamLabel = isSpectator ? 'НАБЛЮДАТЕЛЬ' : (team === 'red' ? 'КРАСНЫЕ' : 'СИНИЕ');
+    document.getElementById('hudTeam').textContent = teamLabel;
+    document.getElementById('hudTeam').className = isSpectator ? 'team-spec' : (team === 'red' ? 'team-red' : 'team-blue');
+    document.getElementById('profile-nick').textContent = nick;
+    document.getElementById('profile-money').textContent = money;
+    document.getElementById('profile-skin').textContent = skin;
+    if (myAvatar) {
+        document.getElementById('profile-avatar-img').src = myAvatar;
+        document.getElementById('profile-avatar-img').style.display = 'inline';
+        document.getElementById('profile-avatar-emoji').style.display = 'none';
+    }
+    
+    addChatMessage(`🎮 Добро пожаловать на ${mapName}!`, 'system');
+    addChatMessage(`👁️ Команда: ${isSpectator ? 'НАБЛЮДАТЕЛЬ' : (team === 'red' ? '🔴 КРАСНЫЕ' : '🔵 СИНИЕ')}`, 'system');
+    addChatMessage(`💬 T - чат, V - голос, 🟡 Кумыс`, 'system');
+    updatePlayersList();
+    updateServerListUI();
+    stopMenuMusic();
+}
+
+// ============================================================
+//  АНИМАЦИЯ
+// ============================================================
+function animate() {
+    if (gameRunning) {
+        updateGame();
+    }
+    renderer?.render(scene, camera);
+    requestAnimationFrame(animate);
+}
+
+// ============================================================
+//  АДАПТАЦИЯ
+// ============================================================
+window.addEventListener('resize', () => {
+    if (camera) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }
+    if (renderer) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+});
+
+// ============================================================
+//  ЗАПУСК
+// ============================================================
+init3D();
+initAudio();
+initAvatarsAndSkins();
+
+const dummyLight = new THREE.AmbientLight(0x404060);
+scene.add(dummyLight);
+const dummyCube = new THREE.Mesh(
+    new THREE.BoxGeometry(10, 0.5, 10),
+    new THREE.MeshStandardMaterial({ color: 0x444444 })
+);
+dummyCube.position.y = -0.5;
+scene.add(dummyCube);
+
+animate();
+
+setTimeout(() => {
+    if (musicEnabled) {
+        playMenuMusic();
+    }
+}, 1000);
+
+console.log('🇰🇿 Counter Strike: Kazakhstan v4.1 loaded!');
+console.log('📁 Файлы: menu.mp3, 1-5.mp3, 1-10.png, skin1-5.png');
+console.log('🎤 V - голосовое сообщение');
+console.log('🏠 Кнопка "Основное меню" в игре');
+console.log('🎮 Выберите карту → команду и играйте!');
+</script>
+</body>
+</html>
